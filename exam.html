@@ -1,17 +1,32 @@
-<!-- exam.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Exam Running</title>
+  <meta charset="UTF-8">
+  <title>Smart Exam Timer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1 id="examTitle">Exam</h1>
-    <p>Time Left: <span id="timeLeft"></span></p>
-    <p>Question <span id="currentQ">1</span> of <span id="totalQ"></span></p>
+    <h1>Smart Exam Timer</h1>
     
-    <button id="nextQ">Next Question</button>
+    <div id="setup">
+      <input id="examName" placeholder="Enter Exam Name" />
+      <input id="duration" type="number" placeholder="Duration (mins)" />
+      <input id="totalQuestions" type="number" placeholder="Total Questions" />
+      <button onclick="startExam()">Start Exam</button>
+    </div>
+
+    <div id="examArea" style="display:none;">
+      <h2 id="questionHeading">Question 1</h2>
+      <p>Question content goes here...</p>
+      <button onclick="nextQuestion()">Next</button>
+      <div class="timer-box">Elapsed Time: <span id="timer">0:00</span></div>
+    </div>
+
+    <div id="resultArea" style="display:none;">
+      <h2>Exam Complete!</h2>
+      <div id="timeReport"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
