@@ -67,3 +67,11 @@ button:disabled {
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
+
+#timeReport strong {
+  color: #1b5e20;
+}
+
+#timeReport p {
+  font-size: 18px;
+}
