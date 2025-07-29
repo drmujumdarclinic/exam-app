@@ -1,0 +1,32 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Start Exam</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Start Your Exam</h1>
+    <form id="examForm">
+      <input type="text" id="examName" placeholder="Enter Exam Name" required><br>
+      <input type="number" id="totalQuestions" placeholder="Total Questions" required><br>
+      <input type="number" id="totalTime" placeholder="Total Time (minutes)" required><br>
+      <button type="submit">Start Exam</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('examForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const examData = {
+        examName: document.getElementById('examName').value,
+        totalQuestions: parseInt(document.getElementById('totalQuestions').value),
+        totalTime: parseInt(document.getElementById('totalTime').value) * 60
+      };
+      localStorage.setItem('examData', JSON.stringify(examData));
+      window.location.href = 'exam.html';
+    });
+  </script>
+</body>
+</html>
