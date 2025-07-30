@@ -66,3 +66,50 @@ function formatTime(seconds) {
   const sec = Math.round(seconds % 60);
   return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
+
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const tableData = [];
+  let totalExtraTime = 0;
+
+  for (let i = 0; i < timings.length; i++) {
+    let timeTaken = timings[i];
+    let extra = timeTaken - timePerQuestion;
+    totalExtraTime += extra;
+
+    tableData.push([
+      i + 1,
+      formatTime(timePerQuestion),
+      formatTime(timeTaken),
+      (extra >= 0 ? "+" : "") + formatTime(extra)
+    ]);
+  }
+
+  // Header
+  doc.setFontSize(16);
+  doc.text("Exam Timer Full Report", 14, 20);
+
+  // Table
+  doc.autoTable({
+    head: [["Q#", "Target Time", "Time Taken", "Extra Time"]],
+    body: tableData,
+    startY: 30,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [22, 160, 133] }
+  });
+
+  // Summary
+  const totalTimeTaken = timings.reduce((a, b) => a + b, 0);
+  const finalY = doc.lastAutoTable.finalY + 10;
+
+  doc.setFontSize(12);
+  doc.text(`Total Questions: ${timings.length}`, 14, finalY);
+  doc.text(`Total Target Time: ${formatTime(timings.length * timePerQuestion)}`, 14, finalY + 7);
+  doc.text(`Total Time Taken: ${formatTime(totalTimeTaken)}`, 14, finalY + 14);
+  doc.text(`Total Extra Time: ${(totalExtraTime >= 0 ? "+" : "") + formatTime(totalExtraTime)}`, 14, finalY + 21);
+
+  doc.save("Exam_Report.pdf");
+}
