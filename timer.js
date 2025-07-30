@@ -57,8 +57,14 @@ function runCountdown() {
     timeLeft.textContent = formatTime(Math.max(0, left));
     updateProgress(Math.max(0, left));
 
-    if (left <= 0 && !beepAudio.played.length) {
-      beepAudio.play(); // only play once
+        if (left <= 0) {
+      clearInterval(countdown); // stop timer
+      if (beepAudio && !beepAudio.played.length) {
+        beepAudio.play();
+      }
+      setTimeout(() => {
+        moveToNext();
+      }, 1000); // move to next question after 1 second
     }
   }, 200);
 }
