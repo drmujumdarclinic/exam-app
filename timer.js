@@ -99,3 +99,36 @@ document.getElementById("nextBtn").onclick = () => {
 };
 
 startQuestion();
+
+
+// 🧠 Voice Recognition: say "next" to move to next question
+try {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
+
+  recognition.continuous = true;
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+    console.log("Heard:", transcript);
+    if (transcript.includes("next")) {
+      moveToNext();
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+  };
+
+  recognition.onend = () => {
+    // Restart if ended unexpectedly
+    recognition.start();
+  };
+
+  recognition.start();
+} catch (err) {
+  console.warn("Voice recognition not supported in this browser.");
+}
+
