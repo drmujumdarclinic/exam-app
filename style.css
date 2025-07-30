@@ -1,77 +1,75 @@
-/* style.css */
-
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to right, #e0f7fa, #ffffff);
-  margin: 0;
-  padding: 0;
-  color: #333;
+  font-family: sans-serif;
   text-align: center;
-  animation: fadeIn 1s ease;
+  background: #fff8f0;
+  color: #333;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.app-container {
+  padding: 20px;
+  max-width: 400px;
+  margin: auto;
 }
 
-h1, h2 {
-  color: #0277bd;
-  margin-top: 20px;
+h2 {
+  color: #ff9900;
 }
 
-input, button {
-  padding: 10px;
-  margin: 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  transition: all 0.3s ease-in-out;
+.progress-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 30px auto;
 }
 
-input:focus, button:hover {
-  border-color: #0277bd;
-  box-shadow: 0 0 8px #81d4fa;
+.progress-ring {
+  transform: rotate(-90deg);
 }
 
-button {
-  background: #0288d1;
+.progress-ring__circle-bg {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 10;
+}
+
+.progress-ring__circle {
+  fill: none;
+  stroke: #ff9900;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 565.48; /* 2πr with r=90 */
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+
+#nextBtn {
+  position: absolute;
+  top: 70px;
+  left: 70px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background-color: #ff9900;
   color: white;
+  font-weight: bold;
+  font-size: 16px;
   cursor: pointer;
 }
 
-button:disabled {
-  background: #90a4ae;
-  cursor: not-allowed;
-}
-
-.timer-box {
+.info {
   margin-top: 20px;
-  font-size: 28px;
-  font-weight: bold;
-  animation: pulse 1s infinite;
-  color: #d84315;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.7; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 30px;
-  background: #ffffffd9;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-
-#timeReport strong {
-  color: #1b5e20;
-}
-
-#timeReport p {
   font-size: 18px;
+}
+
+#timeDisplay.negative {
+  color: red;
+}
+
+.buttons button {
+  margin: 10px;
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
