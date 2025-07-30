@@ -1,93 +1,28 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Exam Timer Setup</title>
-  <link rel="stylesheet" href="style.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-  }
-
-  .container {
-    max-width: 600px;
-    margin: auto;
-    padding: 16px;
-  }
-
-  .timer-display {
-    font-size: 36px;
-    text-align: center;
-    margin: 20px 0;
-  }
-
-  .question-info {
-    font-size: 18px;
-    text-align: center;
-    margin: 8px 0;
-  }
-
-  .controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-  }
-
-  .controls button {
-    flex: 1 1 45%;
-    padding: 12px;
-    font-size: 16px;
-    border: none;
-    background-color: #3498db;
-    color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: background 0.3s ease;
-  }
-
-  .controls button:hover {
-    background-color: #2980b9;
-  }
-
-  canvas {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-  }
-
-  @media (max-width: 480px) {
-    .timer-display {
-      font-size: 28px;
-    }
-    .question-info {
-      font-size: 16px;
-    }
-    .controls button {
-      font-size: 14px;
-      padding: 10px;
-    }
-  }
-</style>
-
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Exam Timer</h1>
-    <form id="setupForm">
-      <label>Exam Name: <input type="text" id="examName" required /></label>
-      <label>Total Questions: <input type="number" id="totalQuestions" required min="1" /></label>
-      <label>Total Time (in minutes): <input type="number" id="totalTime" required min="1" /></label>
-      <button type="submit">Start</button>
+    <h1>Exam Timer Setup</h1>
+    <form id="examForm">
+      <label>Exam Name:
+        <input type="text" id="examName" required>
+      </label>
+      <label>Total Questions:
+        <input type="number" id="totalQuestions" required min="1" max="150">
+      </label>
+      <label>Total Time (in minutes):
+        <input type="number" id="totalTime" required min="1">
+      </label>
+      <button type="submit">Start Exam</button>
     </form>
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
