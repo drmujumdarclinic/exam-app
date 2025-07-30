@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Exam Timer</title>
+  <link rel="stylesheet" href="timer.css" />
+</head>
+<body>
+  <div class="app">
+    <h2 id="examTitle"></h2>
+    <div class="circle-container">
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" class="bg" />
+        <circle cx="50" cy="50" r="45" class="progress" id="progressCircle" />
+        <text x="50" y="53" text-anchor="middle" class="center-text" id="centerText">Start</text>
+      </svg>
+    </div>
+    <div class="question-info">
+      <span id="questionCount">1</span> / <span id="totalQuestions">10</span>
+    </div>
+    <div class="time-info">
+      <span id="timeLeft">00:45</span> / <span id="perQuestion">01:30</span>
+    </div>
+    <div class="controls">
+      <button id="pauseBtn">⏸</button>
+      <button id="nextBtn">➡️</button>
+    </div>
+    <audio id="beepAudio" src="beep.mp3" preload="auto"></audio>
+  </div>
+
+  <script src="timer.js"></script>
+</body>
+</html>
