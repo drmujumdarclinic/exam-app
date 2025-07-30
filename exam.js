@@ -1,122 +1,69 @@
-let examName = "";
-let totalQuestions = 0;
-let totalTime = 0; // in minutes
-let timePerQuestion = 0; // in seconds
-
+let totalQuestions = 10;
 let currentQuestion = 1;
-let timeTakenPerQuestion = [];
-let timer = null;
-let questionStartTime = null;
+let timePerQuestion = 60; // seconds
+let timeRemaining = timePerQuestion;
+let interval;
+let isPaused = false;
+let extraTime = 0;
 
-const beepSound = document.getElementById("beepSound");
+const circle = document.querySelector('.progress-ring__circle');
+const radius = circle.r.baseVal.value;
+const circumference = 2 * Math.PI * radius;
 
-function startExam() {
-  examName = document.getElementById("examName").value.trim();
-  totalQuestions = parseInt(document.getElementById("totalQuestions").value);
-  totalTime = parseFloat(document.getElementById("totalTime").value);
+circle.style.strokeDasharray = circumference;
 
-  if (!examName || isNaN(totalQuestions) || isNaN(totalTime) || totalQuestions <= 0 || totalTime <= 0) {
-    alert("Please enter valid exam details.");
-    return;
-  }
-
-  timePerQuestion = Math.round((totalTime * 60) / totalQuestions);
-
-  document.getElementById("setupContainer").style.display = "none";
-  document.getElementById("examContainer").style.display = "block";
-
-  document.getElementById("examTitle").textContent = examName;
-  document.getElementById("totalQ").textContent = totalQuestions;
-
-  startQuestion();
+function setProgress(percent) {
+  const offset = circumference - (percent * circumference);
+  circle.style.strokeDashoffset = offset;
 }
 
-function startQuestion() {
-  document.getElementById("questionNumber").textContent = currentQuestion;
-  questionStartTime = Date.now();
+function updateDisplay() {
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = Math.abs(timeRemaining % 60);
+  const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-  let remaining = timePerQuestion;
-  updateTimerDisplay(remaining);
+  const timeDisplay = document.getElementById("timeDisplay");
+  timeDisplay.textContent = timeRemaining < 0 ? `-${formatted}` : formatted;
+  timeDisplay.classList.toggle("negative", timeRemaining < 0);
+}
 
-  timer = setInterval(() => {
-    remaining--;
-    updateTimerDisplay(remaining);
-
-    if (remaining <= 0) {
-      clearInterval(timer);
-      beepSound.play();
+function startTimer() {
+  clearInterval(interval);
+  interval = setInterval(() => {
+    if (!isPaused) {
+      timeRemaining--;
+      const percent = Math.max(0, timeRemaining) / timePerQuestion;
+      setProgress(percent);
+      updateDisplay();
     }
   }, 1000);
 }
 
-function updateTimerDisplay(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  document.getElementById("timerDisplay").textContent =
-    `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-}
-
-function nextQuestion() {
-  if (!questionStartTime) return;
-
-  clearInterval(timer);
-  const timeTaken = Math.round((Date.now() - questionStartTime) / 1000);
-  timeTakenPerQuestion.push(timeTaken);
-
-  if (currentQuestion < totalQuestions) {
-    currentQuestion++;
-    startQuestion();
-  } else {
-    endExam();
+document.getElementById("nextBtn").addEventListener("click", () => {
+  clearInterval(interval);
+  // Log current time (can later store it)
+  console.log(`Q${currentQuestion}: Time taken = ${timePerQuestion - timeRemaining}s`);
+  currentQuestion++;
+  if (currentQuestion > totalQuestions) {
+    alert("Exam Finished!");
+    return;
   }
-}
+  document.getElementById("questionCounter").textContent = `${currentQuestion} / ${totalQuestions}`;
+  timeRemaining = timePerQuestion;
+  setProgress(1);
+  updateDisplay();
+  startTimer();
+});
 
-function endExam() {
-  document.getElementById("examContainer").style.display = "none";
-  document.getElementById("resultContainer").style.display = "block";
-  showResultsChart();
-}
+document.getElementById("pauseBtn").addEventListener("click", () => {
+  isPaused = !isPaused;
+});
 
-function showResultsChart() {
-  const labels = [];
-  const targetTimes = [];
-  const actualTimes = [];
+document.getElementById("stopBtn").addEventListener("click", () => {
+  clearInterval(interval);
+});
 
-  for (let i = 0; i < totalQuestions; i++) {
-    labels.push(`Q${i + 1}`);
-    targetTimes.push(timePerQuestion);
-    actualTimes.push(timeTakenPerQuestion[i]);
-  }
-
-  new Chart(document.getElementById("resultChart"), {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "Target Time (s)",
-          data: targetTimes,
-          backgroundColor: "rgba(54, 162, 235, 0.5)"
-        },
-        {
-          label: "Time Taken (s)",
-          data: actualTimes,
-          backgroundColor: "rgba(255, 99, 132, 0.6)"
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "top"
-        },
-        title: {
-          display: true,
-          text: `Result: ${examName}`
-        }
-      }
-    }
-  });
-}
-
+// Start first question
+setProgress(1);
+updateDisplay();
+startTimer();
