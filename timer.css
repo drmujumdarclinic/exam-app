@@ -59,3 +59,44 @@ circle.progress {
   color: white;
   cursor: pointer;
 }
+
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background: #f2f2f2;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  margin: 5px 0;
+}
+
+@media only screen and (max-width: 768px) {
+  .container {
+    padding: 0.5rem;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  #timeDisplay {
+    font-size: 2rem;
+  }
+
+  #questionNo {
+    font-size: 1.5rem;
+  }
+}
+
