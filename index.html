@@ -1,37 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Smart Exam Timer</title>
+  <meta charset="UTF-8">
+  <title>Exam Timer</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <div id="setupContainer">
-      <h2>Setup Exam</h2>
-      <label>Exam Name: <input type="text" id="examName" /></label><br />
-      <label>Total Questions: <input type="number" id="totalQuestions" min="1" /></label><br />
-      <label>Total Time (mins): <input type="number" id="totalTime" min="1" /></label><br />
-      <button onclick="startExam()">Start Exam</button>
+  <div class="app-container">
+    <h2 id="examName">Sample Exam</h2>
+    <div class="progress-container">
+      <svg class="progress-ring" width="200" height="200">
+        <circle class="progress-ring__circle-bg" r="90" cx="100" cy="100" />
+        <circle class="progress-ring__circle" r="90" cx="100" cy="100" />
+      </svg>
+      <button id="nextBtn">Next</button>
     </div>
-
-    <div id="examContainer" style="display:none;">
-      <h2 id="examTitle"></h2>
-      <h3>Question <span id="questionNumber"></span> / <span id="totalQ"></span></h3>
-      <div id="timerDisplay">00:00</div>
-      <button onclick="nextQuestion()">Next Question</button>
+    <div class="info">
+      <span id="questionCounter">1 / 10</span>
+      <span id="timeDisplay">01:00</span>
     </div>
-
-    <div id="resultContainer" style="display:none;">
-      <h2>Exam Summary</h2>
-      <canvas id="resultChart" width="400" height="300"></canvas>
+    <div class="buttons">
+      <button id="pauseBtn">⏸️</button>
+      <button id="stopBtn">⏹️</button>
     </div>
   </div>
 
-  <audio id="beepSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="exam.js"></script>
 </body>
 </html>
