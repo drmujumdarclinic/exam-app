@@ -7,7 +7,8 @@ let actualTimes = [];
 let startTime = null;
 let countdown;
 let paused = false;
-let remainingTime = timePerQuestion;
+let pauseStart = null;
+let accumulatedPause = 0;
 
 const examTitle = document.getElementById("examTitle");
 const questionCount = document.getElementById("questionCount");
@@ -36,33 +37,36 @@ function updateProgress(timeLeftSec) {
 
 function startQuestion() {
   startTime = Date.now();
+  accumulatedPause = 0;
   remainingTime = timePerQuestion;
   centerText.textContent = `Q${currentQuestion}`;
-  updateCountdown();
+  timeLeft.textContent = formatTime(timePerQuestion);
+  updateProgress(timePerQuestion);
+  runCountdown();
 }
 
-function updateCountdown() {
+function runCountdown() {
   clearInterval(countdown);
   countdown = setInterval(() => {
-    if (!paused) {
-      const elapsed = (Date.now() - startTime) / 1000;
-      let left = timePerQuestion - elapsed;
+    if (paused) return;
 
-      if (left <= 0) {
-        beepAudio.play();
-        clearInterval(countdown);
-        actualTimes.push(timePerQuestion); // exactly on time
-        moveToNext();
-      } else {
-        timeLeft.textContent = formatTime(left);
-        updateProgress(left);
-      }
+    let now = Date.now();
+    let elapsed = (now - startTime - accumulatedPause) / 1000;
+    let left = timePerQuestion - elapsed;
+
+    timeLeft.textContent = formatTime(Math.max(0, left));
+    updateProgress(Math.max(0, left));
+
+    if (left <= 0 && !beepAudio.played.length) {
+      beepAudio.play(); // only play once
     }
-  }, 1000);
+
+  }, 200);
 }
 
 function moveToNext() {
-  const elapsed = (Date.now() - startTime) / 1000;
+  let now = Date.now();
+  let elapsed = (now - startTime - accumulatedPause) / 1000;
   actualTimes.push(elapsed);
   currentQuestion++;
 
@@ -75,14 +79,21 @@ function moveToNext() {
   }
 }
 
-// Control Buttons
+// ⏸ Pause/Resume Button
 document.getElementById("pauseBtn").onclick = () => {
   paused = !paused;
-  if (!paused) {
-    startTime = Date.now() - (timePerQuestion - remainingTime) * 1000;
+  const btn = document.getElementById("pauseBtn");
+
+  if (paused) {
+    pauseStart = Date.now();
+    btn.textContent = '▶️';
+  } else {
+    accumulatedPause += Date.now() - pauseStart;
+    btn.textContent = '⏸';
   }
 };
 
+// ➡️ Manual Next Button
 document.getElementById("nextBtn").onclick = () => {
   moveToNext();
 };
