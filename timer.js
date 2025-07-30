@@ -1,152 +1,98 @@
-const totalQuestions = parseInt(localStorage.getItem("totalQuestions"));
-const timePerQuestion = parseFloat(localStorage.getItem("timePerQuestion")); // in seconds
-const examName = localStorage.getItem("examName");
+// timer.js
 
-let currentQuestion = 1;
-let actualTimes = [];
-let startTime = null;
-let countdown;
-let paused = false;
-let pauseStart = null;
-let accumulatedPause = 0;
-let recognition; // voice recognition instance
+let currentQuestionIndex = 0;
+let questions = [];
+let examDuration = 30 * 60; // default total exam duration in seconds (will be overridden by input)
+let timer;
+let timePerQuestion = 0;
+let remainingTime = 0;
+let extraTimes = [];
+let timestamps = [];
 
-const examTitle = document.getElementById("examTitle");
-const questionCount = document.getElementById("questionCount");
-const totalQ = document.getElementById("totalQuestions");
-const timeLeft = document.getElementById("timeLeft");
-const perQuestion = document.getElementById("perQuestion");
-const progressCircle = document.getElementById("progressCircle");
-const centerText = document.getElementById("centerText");
+const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
 
-examTitle.innerText = examName;
-totalQ.innerText = totalQuestions;
-perQuestion.innerText = formatTime(timePerQuestion);
+function loadExamSettings() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const totalQuestions = parseInt(urlParams.get("questions"));
+  const totalTime = parseInt(urlParams.get("time"));
+  const subject = urlParams.get("subject") || "Exam";
 
-function formatTime(seconds) {
-  let m = Math.floor(seconds / 60);
-  let s = Math.floor(seconds % 60);
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  questions = Array.from({ length: totalQuestions }, (_, i) => `Q${i + 1}`);
+  examDuration = totalTime * 60;
+  timePerQuestion = examDuration / totalQuestions;
+
+  document.getElementById("subject").textContent = subject;
+  document.getElementById("total-questions").textContent = totalQuestions;
+  document.getElementById("total-time").textContent = `${totalTime} mins`;
+
+  showQuestion();
+  startTimer();
 }
 
-function updateProgress(timeLeftSec) {
-  const percent = timeLeftSec / timePerQuestion;
-  const offset = 282.6 * (1 - percent);
-  progressCircle.style.strokeDashoffset = offset;
+function showQuestion() {
+  const qEl = document.getElementById("question");
+  if (currentQuestionIndex < questions.length) {
+    qEl.textContent = questions[currentQuestionIndex];
+  } else {
+    endExam();
+  }
 }
 
-function startQuestion() {
-  startTime = Date.now();
-  accumulatedPause = 0;
+function startTimer() {
   remainingTime = timePerQuestion;
-  centerText.textContent = `Q${currentQuestion}`;
-  timeLeft.textContent = formatTime(timePerQuestion);
-  updateProgress(timePerQuestion);
-  runCountdown();
-}
-
-function runCountdown() {
-  clearInterval(countdown);
-  countdown = setInterval(() => {
-    if (paused) return;
-    let now = Date.now();
-    let elapsed = (now - startTime - accumulatedPause) / 1000;
-    let left = timePerQuestion - elapsed;
-    timeLeft.textContent = formatTime(Math.max(0, left));
-    updateProgress(Math.max(0, left));
-  }, 200);
-}
-
-function moveToNext() {
-  let now = Date.now();
-  let elapsed = (now - startTime - accumulatedPause) / 1000;
-  actualTimes.push(elapsed);
-
-  if (navigator.vibrate) navigator.vibrate(1000); // vibrate on mobile
-
-  currentQuestion++;
-  if (currentQuestion > totalQuestions) {
-    localStorage.setItem("actualTimes", JSON.stringify(actualTimes));
-    stopVoiceRecognition();
-    window.location.href = "result.html";
-  } else {
-    questionCount.textContent = currentQuestion;
-    startQuestion();
-  }
-}
-
-// Pause/Resume Button
-document.getElementById("pauseBtn").onclick = () => {
-  paused = !paused;
-  const btn = document.getElementById("pauseBtn");
-  if (paused) {
-    pauseStart = Date.now();
-    btn.textContent = '▶️';
-    stopVoiceRecognition();
-  } else {
-    accumulatedPause += Date.now() - pauseStart;
-    btn.textContent = '⏸';
-    startVoiceRecognition();
-  }
-};
-
-// Manual Next Button
-document.getElementById("nextBtn").onclick = () => {
-  moveToNext();
-};
-
-// Start
-startQuestion();
-startVoiceRecognition();
-
-// Voice recognition setup
-function startVoiceRecognition() {
-  try {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-      console.log("Heard:", transcript);
-      if (transcript.includes("next")) {
-        moveToNext();
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.warn("Speech recognition error:", event.error);
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        alert("Microphone access is denied. Please allow mic access in browser settings.");
-        stopVoiceRecognition();
-      }
-    };
-
-    recognition.onend = () => {
-      // Only restart if not paused
-      if (!paused && currentQuestion <= totalQuestions) {
-        setTimeout(() => {
-          startVoiceRecognition();
-        }, 500); // slight delay to avoid loop errors
-      }
-    };
-
-    recognition.start();
-  } catch (err) {
-    console.warn("Voice recognition not supported or blocked:", err.message);
-  }
-}
-
-function stopVoiceRecognition() {
-  try {
-    if (recognition) {
-      recognition.onend = null; // prevent auto-restart
-      recognition.stop();
+  timer = setInterval(() => {
+    if (remainingTime > 0) {
+      updateTimerDisplay(remainingTime);
+    } else {
+      updateTimerDisplay(remainingTime); // show negative time
     }
-  } catch (err) {
-    console.warn("Error stopping recognition:", err.message);
+    remainingTime--;
+    if (remainingTime < -5) {
+      beep.play();
+      nextQuestion();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(seconds) {
+  const timerDisplay = document.getElementById("timer");
+  let prefix = seconds < 0 ? "-" : "";
+  const absSeconds = Math.abs(seconds);
+  const mins = String(Math.floor(absSeconds / 60)).padStart(2, "0");
+  const secs = String(absSeconds % 60).padStart(2, "0");
+  timerDisplay.textContent = `${prefix}${mins}:${secs}`;
+}
+
+function nextQuestion() {
+  clearInterval(timer);
+  const usedTime = timePerQuestion - remainingTime;
+  extraTimes.push(usedTime);
+  timestamps.push(new Date().toLocaleTimeString());
+  currentQuestionIndex++;
+  if (currentQuestionIndex < questions.length) {
+    showQuestion();
+    startTimer();
+  } else {
+    endExam();
   }
 }
+
+function endExam() {
+  clearInterval(timer);
+  localStorage.setItem("extraTimes", JSON.stringify(extraTimes));
+  localStorage.setItem("questions", JSON.stringify(questions));
+  localStorage.setItem("timestamps", JSON.stringify(timestamps));
+  window.location.href = "result.html";
+}
+
+document.addEventListener("DOMContentLoaded", loadExamSettings);
+
+document.getElementById("next-btn").addEventListener("click", () => {
+  nextQuestion();
+});
+
+document.getElementById("pause-btn").addEventListener("click", () => {
+  clearInterval(timer);
+  startTimer();
+});
 
