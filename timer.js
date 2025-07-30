@@ -17,7 +17,7 @@ const timeLeft = document.getElementById("timeLeft");
 const perQuestion = document.getElementById("perQuestion");
 const progressCircle = document.getElementById("progressCircle");
 const centerText = document.getElementById("centerText");
-const beepAudio = document.getElementById("beepAudio");
+// Removed beepAudio to prevent conflicts
 
 examTitle.innerText = examName;
 totalQ.innerText = totalQuestions;
@@ -57,15 +57,20 @@ function runCountdown() {
     timeLeft.textContent = formatTime(Math.max(0, left));
     updateProgress(Math.max(0, left));
 
-        if (left <= 0) {
-      clearInterval(countdown); // stop timer
-     0);
+    // No beep sound; wait for manual or voice-triggered "next"
+  }, 200);
 }
 
 function moveToNext() {
   let now = Date.now();
   let elapsed = (now - startTime - accumulatedPause) / 1000;
   actualTimes.push(elapsed);
+
+  // ✅ Vibrate for 1 second (1000 ms) on supported mobile devices
+  if (navigator.vibrate) {
+    navigator.vibrate(1000);
+  }
+
   currentQuestion++;
 
   if (currentQuestion > totalQuestions) {
@@ -99,40 +104,32 @@ document.getElementById("nextBtn").onclick = () => {
 // ▶️ Start the first question
 startQuestion();
 
-// Inside timer.js
+// 🧠 Voice Recognition: say "next" to move to next question
+try {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition();
 
-let recognition;
-let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-// Voice Recognition
-if ('webkitSpeechRecognition' in window) {
-  recognition = new webkitSpeechRecognition();
   recognition.continuous = true;
-  recognition.interimResults = false;
   recognition.lang = 'en-US';
+  recognition.interimResults = false;
 
-  recognition.onresult = function(event) {
+  recognition.onresult = (event) => {
     const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-    if (transcript === "next") {
-      nextQuestion();
+    console.log("Heard:", transcript);
+    if (transcript.includes("next")) {
+      moveToNext();
     }
   };
 
-  recognition.onerror = function(event) {
-    console.error("Voice recognition error:", event.error);
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+  };
+
+  recognition.onend = () => {
+    recognition.start(); // restart if ended unexpectedly
   };
 
   recognition.start();
-} else {
-  console.warn("Speech recognition not supported in this browser.");
-}
-
-// Replace playBeep() function with vibration
-function notifyTimeUp() {
-  if (isMobile && navigator.vibrate) {
-    navigator.vibrate([300, 100, 300]); // vibrate pattern
-  }
-  // Do not auto move to next question
-  document.getElementById("nextBtn").disabled = false;
-  document.getElementById("nextBtn").style.opacity = 1;
+} catch (err) {
+  console.warn("Voice recognition not supported in this browser.");
 }
