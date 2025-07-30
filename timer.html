@@ -3,44 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Question Timer</title>
+  <title>Exam Timer</title>
   <link rel="stylesheet" href="timer.css" />
 </head>
 <body>
-  <header class="app-header">
-    <h1>Sample Exam 012</h1>
-    <div class="header-icons">
-      <span>⚙️</span>
-      <span>❓</span>
-    </div>
-  </header>
+  <div class="container">
+    <h2 id="examName">Exam</h2>
 
-  <main class="timer-container">
-    <div class="progress-circle">
+    <div class="progress-container">
       <svg class="progress-ring" width="200" height="200">
-        <circle class="ring-bg" r="90" cx="100" cy="100" />
-        <circle class="ring-progress" r="90" cx="100" cy="100" />
+        <circle class="progress-ring__circle--bg" cx="100" cy="100" r="90" />
+        <circle class="progress-ring__circle" cx="100" cy="100" r="90" />
       </svg>
-      <div class="center-content">
-        <div id="question-count">1 / 10</div>
-        <div id="next-btn">Next</div>
+      <div class="center-text">
+        <p id="questionNum">Q 1</p>
+        <p id="statusText">Get Ready</p>
       </div>
     </div>
 
-    <div class="timer-display">
-      <span id="elapsed-time">00:00</span>
-      <span> / </span>
-      <span id="per-question-time">00:20</span>
+    <div class="time-display">
+      <span id="timeUsed">00:00</span>
+      <span>/</span>
+      <span id="targetTime">00:45</span>
     </div>
 
-    <div class="timer-controls">
-      <button id="pause-btn">⏸</button>
-      <button id="stop-btn">⏹</button>
+    <div class="buttons">
+      <button id="pauseBtn">⏸️</button>
+      <button id="nextBtn">Next</button>
+      <button id="stopBtn">⏹️</button>
     </div>
-  </main>
+  </div>
 
-  <audio id="beep-audio" src="https://www.soundjay.com/buttons/beep-07.wav" preload="auto"></audio>
+  <!-- Beep sound -->
+  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+
   <script src="timer.js"></script>
-  
 </body>
 </html>
