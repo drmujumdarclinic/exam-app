@@ -1,121 +1,112 @@
-// exam.js
+window.onload = function () {
+  const startButton = document.getElementById("startBtn");
+  const examContainer = document.getElementById("examContainer");
+  const resultDiv = document.getElementById("result");
+  const timerCircle = document.querySelector(".timer-circle");
+  const timerText = document.getElementById("timer");
+  const questionText = document.getElementById("questionText");
+  const questionInput = document.getElementById("questionInput");
+  const nextButton = document.getElementById("nextBtn");
+  const examNameInput = document.getElementById("examName");
+  const numQuestionsInput = document.getElementById("numQuestions");
 
-let examName = "";
-let totalQuestions = 0;
-let totalTimeInMinutes = 0;
-let perQuestionTimeInSeconds = 0;
-let currentQuestion = 1;
-let timer;
-let timeLeft;
-let startTime;
-let extraTime = [];
+  // Working beep audio
+  const beep = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
-const configSection = document.getElementById("config-section");
-const timerSection = document.getElementById("timer-section");
-const chartSection = document.getElementById("chart-section");
-const questionLabel = document.getElementById("question-label");
-const timerDisplay = document.getElementById("timer-display");
-const nextButton = document.getElementById("next-button");
-const examTitle = document.getElementById("exam-title");
-const chartCanvas = document.getElementById("result-chart");
+  let currentQuestion = 0;
+  let totalQuestions = 0;
+  let examName = "";
+  let timer = null;
+  let timeLeft = 60;
+  let answers = [];
+  let overtime = 0;
 
-function startExam() {
-  examName = document.getElementById("exam-name").value;
-  totalQuestions = parseInt(document.getElementById("total-questions").value);
-  totalTimeInMinutes = parseInt(document.getElementById("total-time").value);
+  function startExam() {
+    examName = examNameInput.value.trim();
+    totalQuestions = parseInt(numQuestionsInput.value);
 
-  if (!examName || !totalQuestions || !totalTimeInMinutes) {
-    alert("Please fill all fields correctly.");
-    return;
-  }
-
-  perQuestionTimeInSeconds = Math.floor((totalTimeInMinutes * 60) / totalQuestions);
-  examTitle.innerText = examName;
-  configSection.style.display = "none";
-  timerSection.style.display = "block";
-  startQuestion();
-}
-
-function startQuestion() {
-  if (currentQuestion > totalQuestions) {
-    endExam();
-    return;
-  }
-
-  questionLabel.innerText = `Question ${currentQuestion} of ${totalQuestions}`;
-  timeLeft = perQuestionTimeInSeconds;
-  startTime = Date.now();
-  updateTimerDisplay();
-
-  if (timer) clearInterval(timer);
-  timer = setInterval(() => {
-    let now = Date.now();
-    let elapsed = Math.floor((now - startTime) / 1000);
-    let displayTime = perQuestionTimeInSeconds - elapsed;
-
-    if (displayTime >= 0) {
-      timerDisplay.innerText = formatTime(displayTime);
-    } else {
-      timerDisplay.innerText = `-${formatTime(-displayTime)}`;
-      timerDisplay.classList.add("over-time");
+    if (!examName || isNaN(totalQuestions) || totalQuestions <= 0) {
+      alert("Please enter a valid exam name and number of questions.");
+      return;
     }
-  }, 1000);
-}
 
-function nextQuestion() {
-  let now = Date.now();
-  let timeTaken = Math.floor((now - startTime) / 1000);
-  let overTime = timeTaken - perQuestionTimeInSeconds;
-  extraTime.push(overTime);
-  currentQuestion++;
-  timerDisplay.classList.remove("over-time");
-  startQuestion();
-}
+    startButton.style.display = "none";
+    document.getElementById("setup").style.display = "none";
+    examContainer.style.display = "block";
 
-function endExam() {
-  clearInterval(timer);
-  timerSection.style.display = "none";
-  chartSection.style.display = "block";
-  showChart();
-}
+    answers = [];
+    currentQuestion = 1;
+    showQuestion();
+  }
 
-function showChart() {
-  const ctx = chartCanvas.getContext("2d");
-  const data = {
-    labels: Array.from({ length: totalQuestions }, (_, i) => `Q${i + 1}`),
-    datasets: [
-      {
-        label: "Target Time (sec)",
-        data: Array(totalQuestions).fill(perQuestionTimeInSeconds),
-        backgroundColor: "rgba(75, 192, 192, 0.5)",
-      },
-      {
-        label: "Time Taken (sec)",
-        data: extraTime.map(x => x + perQuestionTimeInSeconds),
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
-    ],
-  };
+  function showQuestion() {
+    questionText.textContent = `Q${currentQuestion}`;
+    questionInput.value = "";
+    startTimer();
+  }
 
-  new Chart(ctx, {
-    type: "bar",
-    data: data,
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-        },
-      },
-    },
-  });
-}
+  function startTimer() {
+    timeLeft = 60;
+    overtime = 0;
+    updateTimerDisplay();
 
-function formatTime(sec) {
-  const minutes = Math.floor(sec / 60).toString().padStart(2, "0");
-  const seconds = (sec % 60).toString().padStart(2, "0");
-  return `${minutes}:${seconds}`;
-}
+    if (timer) clearInterval(timer);
 
-nextButton.addEventListener("click", nextQuestion);
-document.getElementById("start-button").addEventListener("click", startExam);
+    timer = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        updateTimerDisplay();
+      } else {
+        overtime++;
+        updateTimerDisplay(true);
+        timerCircle.classList.add("overtime");
+        if (overtime === 1) beep.play(); // Beep once at start of overtime
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay(isOvertime = false) {
+    if (isOvertime) {
+      timerText.textContent = `-${String(overtime).padStart(2, "0")}`;
+    } else {
+      timerText.textContent = `${String(timeLeft).padStart(2, "0")}`;
+      timerCircle.classList.remove("overtime");
+    }
+  }
+
+  function nextQuestion() {
+    const response = questionInput.value.trim();
+    answers.push({
+      question: `Q${currentQuestion}`,
+      answer: response || "(No answer)",
+      overtime: overtime > 0 ? `+${overtime} sec` : "On time",
+    });
+
+    clearInterval(timer);
+
+    if (currentQuestion < totalQuestions) {
+      currentQuestion++;
+      showQuestion();
+    } else {
+      finishExam();
+    }
+  }
+
+  function finishExam() {
+    examContainer.style.display = "none";
+    resultDiv.style.display = "block";
+
+    const heading = document.createElement("h3");
+    heading.textContent = `Results for "${examName}"`;
+    resultDiv.appendChild(heading);
+
+    answers.forEach((item, index) => {
+      const p = document.createElement("p");
+      p.textContent = `${item.question}: ${item.answer} (${item.overtime})`;
+      resultDiv.appendChild(p);
+    });
+  }
+
+  startButton.addEventListener("click", startExam);
+  nextButton.addEventListener("click", nextQuestion);
+};
