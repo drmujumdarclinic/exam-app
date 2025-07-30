@@ -1,135 +1,132 @@
-let totalQuestions = 0;
+const totalQuestions = parseInt(localStorage.getItem("totalQuestions"));
+const timePerQuestion = parseFloat(localStorage.getItem("timePerQuestion")); // in seconds
+const examName = localStorage.getItem("examName");
+
 let currentQuestion = 1;
-let totalTime = 0;
-let perQuestionTime = 0;
-let remainingTime = 0;
-let interval;
-let extraTimeData = [];
-let isPaused = false;
+let actualTimes = [];
+let startTime = null;
+let countdown;
+let paused = false;
+let pauseStart = null;
+let accumulatedPause = 0;
 
-const questionDisplay = document.getElementById('questionDisplay');
-const timerDisplay = document.getElementById('timer');
-const startBtn = document.getElementById('startBtn');
-const nextBtn = document.getElementById('nextBtn');
-const pauseBtn = document.getElementById('pauseBtn');
+const examTitle = document.getElementById("examTitle");
+const questionCount = document.getElementById("questionCount");
+const totalQ = document.getElementById("totalQuestions");
+const timeLeft = document.getElementById("timeLeft");
+const perQuestion = document.getElementById("perQuestion");
+const progressCircle = document.getElementById("progressCircle");
+const centerText = document.getElementById("centerText");
+const beepAudio = document.getElementById("beepAudio");
 
-startBtn.addEventListener('click', () => {
-  totalQuestions = parseInt(document.getElementById('questions').value);
-  totalTime = parseInt(document.getElementById('time').value);
-  perQuestionTime = Math.floor((totalTime * 60) / totalQuestions);
-  currentQuestion = 1;
-  extraTimeData = [];
-  isPaused = false;
+examTitle.innerText = examName;
+totalQ.innerText = totalQuestions;
+perQuestion.innerText = formatTime(timePerQuestion);
 
-  startBtn.disabled = true;
-  document.getElementById('questions').disabled = true;
-  document.getElementById('time').disabled = true;
-  nextBtn.disabled = false;
-  pauseBtn.disabled = false;
+function formatTime(seconds) {
+  let m = Math.floor(seconds / 60);
+  let s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
-  startQuestion();
-});
-
-nextBtn.addEventListener('click', () => {
-  recordExtraTime();
-  if (currentQuestion < totalQuestions) {
-    currentQuestion++;
-    startQuestion();
-  } else {
-    clearInterval(interval);
-    window.location.href = "result.html";
-    localStorage.setItem('extraTimeData', JSON.stringify(extraTimeData));
-  }
-});
-
-pauseBtn.addEventListener('click', () => {
-  if (isPaused) {
-    interval = setInterval(updateTimer, 1000);
-    pauseBtn.textContent = "Pause";
-    isPaused = false;
-  } else {
-    clearInterval(interval);
-    pauseBtn.textContent = "Resume";
-    isPaused = true;
-  }
-});
+function updateProgress(timeLeftSec) {
+  const percent = timeLeftSec / timePerQuestion;
+  const offset = 282.6 * (1 - percent);
+  progressCircle.style.strokeDashoffset = offset;
+}
 
 function startQuestion() {
-  clearInterval(interval);
-  remainingTime = perQuestionTime;
-  updateTimerDisplay();
-  questionDisplay.textContent = `Q ${currentQuestion}`;
-  interval = setInterval(updateTimer, 1000);
+  startTime = Date.now();
+  accumulatedPause = 0;
+  remainingTime = timePerQuestion;
+  centerText.textContent = `Q${currentQuestion}`;
+  timeLeft.textContent = formatTime(timePerQuestion);
+  updateProgress(timePerQuestion);
+  runCountdown();
 }
 
-function updateTimer() {
-  remainingTime--;
-  updateTimerDisplay();
+function runCountdown() {
+  clearInterval(countdown);
+  countdown = setInterval(() => {
+    if (paused) return;
 
-  if (remainingTime === 0) {
-    playBeep();
-  }
+    let now = Date.now();
+    let elapsed = (now - startTime - accumulatedPause) / 1000;
+    let left = timePerQuestion - elapsed;
+
+    timeLeft.textContent = formatTime(Math.max(0, left));
+    updateProgress(Math.max(0, left));
+
+    if (left <= 0 && !beepAudio.played.length) {
+      beepAudio.play(); // only play once
+    }
+  }, 200);
 }
 
-function updateTimerDisplay() {
-  let displayTime = remainingTime;
+function moveToNext() {
+  let now = Date.now();
+  let elapsed = (now - startTime - accumulatedPause) / 1000;
+  actualTimes.push(elapsed);
+  currentQuestion++;
 
-  if (remainingTime < 0) {
-    displayTime = Math.abs(remainingTime);
-    timerDisplay.textContent = `-${formatTime(Math.floor(displayTime / 60))}:${formatTime(displayTime % 60)}`;
-    timerDisplay.style.color = "red"; // optional: red color for overtime
+  if (currentQuestion > totalQuestions) {
+    localStorage.setItem("actualTimes", JSON.stringify(actualTimes));
+    window.location.href = "result.html";
   } else {
-    timerDisplay.textContent = `${formatTime(Math.floor(displayTime / 60))}:${formatTime(displayTime % 60)}`;
-    timerDisplay.style.color = "#000";
+    questionCount.textContent = currentQuestion;
+    startQuestion();
   }
 }
 
-function formatTime(value) {
-  return value < 10 ? `0${value}` : value;
-}
+// ⏸ Pause/Resume Button
+document.getElementById("pauseBtn").onclick = () => {
+  paused = !paused;
+  const btn = document.getElementById("pauseBtn");
 
-function playBeep() {
-  const beep = new Audio("https://www.soundjay.com/buttons/beep-07.wav");
-  beep.play().catch(error => console.warn("Beep play failed:", error));
-}
+  if (paused) {
+    pauseStart = Date.now();
+    btn.textContent = '▶️';
+  } else {
+    accumulatedPause += Date.now() - pauseStart;
+    btn.textContent = '⏸';
+  }
+};
 
-function recordExtraTime() {
-  const extra = remainingTime < 0 ? Math.abs(remainingTime) : 0;
-  extraTimeData.push({
-    question: currentQuestion,
-    extraTime: -extra // negative for display in chart
-  });
-}
+// ➡️ Manual Next Button
+document.getElementById("nextBtn").onclick = () => {
+  moveToNext();
+};
 
-////////////////////////////
-// ✅ Voice Recognition
-////////////////////////////
+// ▶️ Start the first question
+startQuestion();
 
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+// 🧠 Voice Recognition: say "next" to move to next question
+try {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
+
   recognition.continuous = true;
+  recognition.lang = 'en-US';
   recognition.interimResults = false;
 
-  recognition.onresult = function (event) {
+  recognition.onresult = (event) => {
     const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
     console.log("Heard:", transcript);
-    if (transcript === "next" || transcript === "next question") {
-      nextBtn.click();
+    if (transcript.includes("next")) {
+      moveToNext();
     }
   };
 
-  recognition.onerror = function (event) {
+  recognition.onerror = (event) => {
     console.error("Speech recognition error:", event.error);
   };
 
-  recognition.onend = function () {
-    recognition.start(); // restart for continuous listening
+  recognition.onend = () => {
+    recognition.start(); // restart if ended unexpectedly
   };
 
   recognition.start();
-} else {
-  console.warn("Speech recognition not supported in this browser.");
+} catch (err) {
+  console.warn("Voice recognition not supported in this browser.");
 }
 
