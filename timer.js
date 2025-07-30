@@ -59,14 +59,7 @@ function runCountdown() {
 
         if (left <= 0) {
       clearInterval(countdown); // stop timer
-      if (beepAudio && !beepAudio.played.length) {
-        beepAudio.play();
-      }
-      setTimeout(() => {
-        moveToNext();
-      }, 1000); // move to next question after 1 second
-    }
-  }, 200);
+     0);
 }
 
 function moveToNext() {
@@ -106,33 +99,40 @@ document.getElementById("nextBtn").onclick = () => {
 // ▶️ Start the first question
 startQuestion();
 
-// 🧠 Voice Recognition: say "next" to move to next question
-try {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
+// Inside timer.js
 
+let recognition;
+let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+// Voice Recognition
+if ('webkitSpeechRecognition' in window) {
+  recognition = new webkitSpeechRecognition();
   recognition.continuous = true;
-  recognition.lang = 'en-US';
   recognition.interimResults = false;
+  recognition.lang = 'en-US';
 
-  recognition.onresult = (event) => {
+  recognition.onresult = function(event) {
     const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-    console.log("Heard:", transcript);
-    if (transcript.includes("next")) {
-      moveToNext();
+    if (transcript === "next") {
+      nextQuestion();
     }
   };
 
-  recognition.onerror = (event) => {
-    console.error("Speech recognition error:", event.error);
-  };
-
-  recognition.onend = () => {
-    recognition.start(); // restart if ended unexpectedly
+  recognition.onerror = function(event) {
+    console.error("Voice recognition error:", event.error);
   };
 
   recognition.start();
-} catch (err) {
-  console.warn("Voice recognition not supported in this browser.");
+} else {
+  console.warn("Speech recognition not supported in this browser.");
 }
 
+// Replace playBeep() function with vibration
+function notifyTimeUp() {
+  if (isMobile && navigator.vibrate) {
+    navigator.vibrate([300, 100, 300]); // vibrate pattern
+  }
+  // Do not auto move to next question
+  document.getElementById("nextBtn").disabled = false;
+  document.getElementById("nextBtn").style.opacity = 1;
+}
