@@ -1,98 +1,109 @@
-// timer.js
-
-let currentQuestionIndex = 0;
-let questions = [];
-let examDuration = 30 * 60; // default total exam duration in seconds (will be overridden by input)
+let currentQuestion = 0;
+let totalQuestions = 0;
+let totalExamTime = 0; // in minutes
+let timePerQuestion = 0; // in seconds
 let timer;
-let timePerQuestion = 0;
-let remainingTime = 0;
-let extraTimes = [];
-let timestamps = [];
+let timeLeft;
+let isNegative = false;
+let negativeTime = 0;
+let responses = [];
+let isStarted = false;
 
-const beep = new Audio("https://www.soundjay.com/button/beep-07.wav");
+// Beep sound
+const beep = new Audio("https://www.soundjay.com/buttons/sounds/beep-07.mp3");
 
-function loadExamSettings() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const totalQuestions = parseInt(urlParams.get("questions"));
-  const totalTime = parseInt(urlParams.get("time"));
-  const subject = urlParams.get("subject") || "Exam";
-
-  questions = Array.from({ length: totalQuestions }, (_, i) => `Q${i + 1}`);
-  examDuration = totalTime * 60;
-  timePerQuestion = examDuration / totalQuestions;
-
-  document.getElementById("subject").textContent = subject;
-  document.getElementById("total-questions").textContent = totalQuestions;
-  document.getElementById("total-time").textContent = `${totalTime} mins`;
-
-  showQuestion();
-  startTimer();
-}
-
-function showQuestion() {
-  const qEl = document.getElementById("question");
-  if (currentQuestionIndex < questions.length) {
-    qEl.textContent = questions[currentQuestionIndex];
-  } else {
-    endExam();
-  }
+function formatTime(seconds) {
+  const absSec = Math.abs(seconds);
+  const mins = String(Math.floor(absSec / 60)).padStart(2, "0");
+  const secs = String(absSec % 60).padStart(2, "0");
+  return (seconds < 0 ? "-" : "") + `${mins}:${secs}`;
 }
 
 function startTimer() {
-  remainingTime = timePerQuestion;
-  timer = setInterval(() => {
-    if (remainingTime > 0) {
-      updateTimerDisplay(remainingTime);
-    } else {
-      updateTimerDisplay(remainingTime); // show negative time
+  if (!isStarted) {
+    const totalTimeInput = document.getElementById("totalTime").value;
+    const totalQuestionsInput = document.getElementById("totalQuestions").value;
+
+    if (!totalTimeInput || !totalQuestionsInput) {
+      alert("Please enter total time and total questions.");
+      return;
     }
-    remainingTime--;
-    if (remainingTime < -5) {
-      beep.play();
-      nextQuestion();
+
+    totalExamTime = parseInt(totalTimeInput);
+    totalQuestions = parseInt(totalQuestionsInput);
+    timePerQuestion = Math.floor((totalExamTime * 60) / totalQuestions); // in seconds
+    isStarted = true;
+  }
+
+  if (currentQuestion >= totalQuestions) {
+    alert("All questions completed!");
+    return;
+  }
+
+  timeLeft = timePerQuestion;
+  isNegative = false;
+  negativeTime = 0;
+  document.getElementById("questionCounter").innerText = `Question ${currentQuestion + 1}/${totalQuestions}`;
+
+  if (timer) clearInterval(timer);
+
+  timer = setInterval(() => {
+    const timerDisplay = document.getElementById("timerDisplay");
+
+    if (timeLeft > 0) {
+      timerDisplay.innerText = formatTime(timeLeft);
+      timeLeft--;
+    } else {
+      // Time is over, count in negative
+      isNegative = true;
+      negativeTime++;
+      timerDisplay.innerText = formatTime(-negativeTime);
     }
   }, 1000);
 }
 
-function updateTimerDisplay(seconds) {
-  const timerDisplay = document.getElementById("timer");
-  let prefix = seconds < 0 ? "-" : "";
-  const absSeconds = Math.abs(seconds);
-  const mins = String(Math.floor(absSeconds / 60)).padStart(2, "0");
-  const secs = String(absSeconds % 60).padStart(2, "0");
-  timerDisplay.textContent = `${prefix}${mins}:${secs}`;
-}
-
 function nextQuestion() {
+  if (!isStarted) {
+    alert("Please start the test first.");
+    return;
+  }
+
   clearInterval(timer);
-  const usedTime = timePerQuestion - remainingTime;
-  extraTimes.push(usedTime);
-  timestamps.push(new Date().toLocaleTimeString());
-  currentQuestionIndex++;
-  if (currentQuestionIndex < questions.length) {
-    showQuestion();
+
+  responses.push({
+    question: currentQuestion + 1,
+    extraTime: isNegative ? negativeTime : 0,
+  });
+
+  currentQuestion++;
+  beep.play();
+  if (currentQuestion < totalQuestions) {
     startTimer();
   } else {
-    endExam();
+    alert("Test completed!");
+    showResults();
   }
 }
 
-function endExam() {
-  clearInterval(timer);
-  localStorage.setItem("extraTimes", JSON.stringify(extraTimes));
-  localStorage.setItem("questions", JSON.stringify(questions));
-  localStorage.setItem("timestamps", JSON.stringify(timestamps));
-  window.location.href = "result.html";
+function showResults() {
+  let container = document.getElementById("resultContainer");
+  container.innerHTML = "<h3>Time Summary</h3>";
+
+  let totalExtra = 0;
+  let resultList = document.createElement("ul");
+  responses.forEach((res) => {
+    const li = document.createElement("li");
+    li.innerText = `Question ${res.question}: Extra Time = ${res.extraTime} sec`;
+    totalExtra += res.extraTime;
+    resultList.appendChild(li);
+  });
+
+  container.appendChild(resultList);
+  container.innerHTML += `<p><strong>Total Extra Time:</strong> ${totalExtra} seconds</p>`;
 }
 
-document.addEventListener("DOMContentLoaded", loadExamSettings);
-
-document.getElementById("next-btn").addEventListener("click", () => {
-  nextQuestion();
-});
-
-document.getElementById("pause-btn").addEventListener("click", () => {
-  clearInterval(timer);
-  startTimer();
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("startButton")?.addEventListener("click", startTimer);
+  document.getElementById("nextButton")?.addEventListener("click", nextQuestion);
 });
 
