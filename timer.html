@@ -1,42 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Exam Timer</title>
-  <link rel="stylesheet" href="timer.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h2 id="examName">Exam</h2>
-
-    <div class="progress-container">
-      <svg class="progress-ring" width="200" height="200">
-        <circle class="progress-ring__circle--bg" cx="100" cy="100" r="90" />
-        <circle class="progress-ring__circle" cx="100" cy="100" r="90" />
+    <div class="progress-ring">
+      <svg width="200" height="200">
+        <circle class="bg" cx="100" cy="100" r="90"/>
+        <circle class="progress" cx="100" cy="100" r="90"/>
       </svg>
-      <div class="center-text">
-        <p id="questionNum">Q 1</p>
-        <p id="statusText">Get Ready</p>
+      <div class="center-content">
+        <div id="questionNumber">1 / 10</div>
+        <button id="nextBtn">Next</button>
       </div>
     </div>
 
-    <div class="time-display">
-      <span id="timeUsed">00:00</span>
-      <span>/</span>
-      <span id="targetTime">00:45</span>
+    <div class="timer-info">
+      <span id="questionTimer">00:00</span> / <span id="totalTimer">00:00</span>
     </div>
 
-    <div class="buttons">
-      <button id="pauseBtn">⏸️</button>
-      <button id="nextBtn">Next</button>
-      <button id="stopBtn">⏹️</button>
+    <div class="controls">
+      <button id="pauseBtn">⏸</button>
+      <button id="stopBtn">⏹</button>
     </div>
   </div>
 
-  <!-- Beep sound -->
-  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-
+  <audio id="beep" src="assets/beep.mp3" preload="auto"></audio>
   <script src="timer.js"></script>
 </body>
 </html>
