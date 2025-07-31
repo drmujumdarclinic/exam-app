@@ -1,62 +1,66 @@
-// Fetch result data from localStorage
-const examName = localStorage.getItem("examName") || "Sample Exam";
-const totalQuestions = parseInt(localStorage.getItem("totalQuestions") || "10");
-const totalTime = parseInt(localStorage.getItem("totalTime") || "5"); // in minutes
-const timeTaken = parseFloat(localStorage.getItem("timeTaken") || "5"); // in minutes
-const extraTime = Math.max(0, timeTaken - totalTime);
+document.addEventListener("DOMContentLoaded", () => {
+  const examName = localStorage.getItem("examName") || "Exam Result";
+  const questionCount = parseInt(localStorage.getItem("questionCount"), 10) || 1;
+  const targetTime = parseFloat(localStorage.getItem("targetTime")) || 60;
+  const actualTimes = JSON.parse(localStorage.getItem("timePerQuestion")) || [];
 
-// Update HTML content
-document.getElementById("examName").textContent = examName;
-document.getElementById("totalQuestions").textContent = totalQuestions;
-document.getElementById("totalTime").textContent = totalTime;
-document.getElementById("timeTaken").textContent = timeTaken.toFixed(2) + " mins";
-document.getElementById("extraTime").textContent = extraTime > 0 ? extraTime.toFixed(2) + " mins" : "None";
+  document.getElementById("examTitle").textContent = `${examName} - Result`;
 
-// Create a chart using Chart.js
-const ctx = document.getElementById('resultChart').getContext('2d');
+  const labels = Array.from({ length: questionCount }, (_, i) => `Q${i + 1}`);
+  const targetTimes = Array(questionCount).fill(targetTime);
 
-const chart = new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: ['Total Time', 'Time Taken', 'Extra Time'],
-    datasets: [{
-      label: 'Time in minutes',
-      data: [totalTime, timeTaken, extraTime],
-      backgroundColor: [
-        'rgba(54, 162, 235, 0.6)',
-        'rgba(255, 206, 86, 0.6)',
-        'rgba(255, 99, 132, 0.6)'
-      ],
-      borderColor: [
-        'rgba(54, 162, 235, 1)',
-        'rgba(255, 206, 86, 1)',
-        'rgba(255, 99, 132, 1)'
-      ],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          stepSize: 1
+  // Fill missing actualTimes with zeros (if any)
+  const paddedActualTimes = Array.from({ length: questionCount }, (_, i) => actualTimes[i] || 0);
+
+  const ctx = document.getElementById('resultChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Target Time (s)',
+          data: targetTimes,
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        },
+        {
+          label: 'Time Taken (s)',
+          data: paddedActualTimes,
+          backgroundColor: 'rgba(255, 99, 132, 0.6)',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Seconds'
+          }
         }
       }
     }
-  }
+  });
+
+  // PDF Download
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const canvas = document.getElementById('resultChart');
+    const imgData = canvas.toDataURL("image/png");
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    pdf.setFontSize(16);
+    pdf.text(`${examName} - Result Chart`, 20, 20);
+    pdf.addImage(imgData, 'PNG', 15, 30, 180, 90);
+
+    pdf.setFontSize(12);
+    paddedActualTimes.forEach((time, index) => {
+      pdf.text(`Q${index + 1}: Target ${targetTime}s | Actual ${time}s`, 20, 130 + index * 6);
+    });
+
+    pdf.save(`${examName}_Result.pdf`);
+  });
 });
-
-// Download as PDF
-function downloadPDF() {
-  const element = document.getElementById('resultSection');
-  const opt = {
-    margin:       0.5,
-    filename:     `${examName}_Result.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opt).from(element).save();
-}
