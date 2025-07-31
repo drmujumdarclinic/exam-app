@@ -1,115 +1,78 @@
-const examName = localStorage.getItem("examName");
-const totalQuestions = parseInt(localStorage.getItem("totalQuestions"));
-const timePerQuestion = parseFloat(localStorage.getItem("timePerQuestion"));
-const actualTimes = JSON.parse(localStorage.getItem("actualTimes")) || [];
+// result.js
 
-// UI Elements
-document.getElementById("examName").textContent = examName;
-document.getElementById("totalQuestions").textContent = totalQuestions;
-document.getElementById("perQuestionTime").textContent = formatTime(timePerQuestion);
+const examData = JSON.parse(localStorage.getItem("examData"));
+const results = JSON.parse(localStorage.getItem("results"));
 
-// Total Time Taken
-const totalTaken = actualTimes.reduce((sum, val) => sum + val, 0);
-const totalTarget = timePerQuestion * totalQuestions;
-const extraTime = totalTaken - totalTarget;
+if (!examData || !results) {
+  alert("No result data found!");
+  window.location.href = "index.html";
+}
 
-document.getElementById("totalTimeTaken").textContent = formatTime(totalTaken);
-document.getElementById("extraTime").textContent = formatTime(extraTime);
+const { examName, timePerQuestion } = examData;
+document.getElementById("examTitle").textContent = `${examName} - Result`;
 
-// Prepare data for chart
-const questionLabels = actualTimes.map((_, i) => `Q${i + 1}`);
-const actualDiffs = actualTimes.map(t => (t - timePerQuestion).toFixed(2)); // +/- difference
+const labels = results.map(r => `Q${r.question}`);
+const actualTimes = results.map(r => Math.max(0, r.timeTaken));
+const targetTimes = results.map(() => timePerQuestion);
 
-const ctx = document.getElementById("resultChart").getContext("2d");
-
-new Chart(ctx, {
+// Create Chart
+const ctx = document.getElementById('resultChart').getContext('2d');
+const chart = new Chart(ctx, {
   type: 'bar',
   data: {
-    labels: questionLabels,
-    datasets: [{
-      label: 'Extra Time (+) or Saved Time (-) in seconds',
-      data: actualDiffs,
-      backgroundColor: actualDiffs.map(val => val >= 0 ? '#e74c3c' : '#2ecc71'), // red for extra, green for saved
-    }]
+    labels,
+    datasets: [
+      {
+        label: 'Target Time (sec)',
+        data: targetTimes,
+        backgroundColor: 'rgba(54, 162, 235, 0.6)'
+      },
+      {
+        label: 'Time Taken (sec)',
+        data: actualTimes,
+        backgroundColor: 'rgba(255, 99, 132, 0.6)'
+      }
+    ]
   },
   options: {
     responsive: true,
-    scales: {
-      y: {
-        beginAtZero: false,
-        title: {
-          display: true,
-          text: 'Time Difference (sec)'
-        }
-      }
-    },
     plugins: {
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            const diff = context.parsed.y;
-            if (diff >= 0) {
-              return `Extra Time: +${diff}s`;
-            } else {
-              return `Saved Time: ${diff}s`;
-            }
-          }
-        }
+      legend: {
+        position: 'top'
+      },
+      title: {
+        display: true,
+        text: 'Time per Question'
       }
     }
   }
 });
 
-// Utility function
-function formatTime(seconds) {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.round(seconds % 60);
-  return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
-
-
-function downloadPDF() {
+// PDF Download
+document.getElementById("downloadBtn").addEventListener("click", () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const tableData = [];
-  let totalExtraTime = 0;
+  doc.setFontSize(18);
+  doc.text(`${examName} - Exam Result`, 10, 15);
+  doc.setFontSize(12);
+  doc.text(`Question-wise Time Summary`, 10, 25);
 
-  for (let i = 0; i < timings.length; i++) {
-    let timeTaken = timings[i];
-    let extra = timeTaken - timePerQuestion;
-    totalExtraTime += extra;
-
-    tableData.push([
-      i + 1,
-      formatTime(timePerQuestion),
-      formatTime(timeTaken),
-      (extra >= 0 ? "+" : "") + formatTime(extra)
-    ]);
-  }
-
-  // Header
-  doc.setFontSize(16);
-  doc.text("Exam Timer Full Report", 14, 20);
-
-  // Table
-  doc.autoTable({
-    head: [["Q#", "Target Time", "Time Taken", "Extra Time"]],
-    body: tableData,
-    startY: 30,
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [22, 160, 133] }
+  // Add table
+  results.forEach((r, index) => {
+    const y = 35 + index * 8;
+    doc.text(`Q${r.question}: Target ${Math.round(timePerQuestion)}s, Taken ${Math.round(r.timeTaken)}s`, 10, y);
   });
 
-  // Summary
-  const totalTimeTaken = timings.reduce((a, b) => a + b, 0);
-  const finalY = doc.lastAutoTable.finalY + 10;
+  // Add chart image
+  doc.addPage();
+  doc.setFontSize(14);
+  doc.text('Bar Chart:', 10, 15);
+  const chartCanvas = document.getElementById("resultChart");
+  const chartImage = chartCanvas.toDataURL("image/png", 1.0);
+  doc.addImage(chartImage, 'PNG', 10, 20, 180, 100);
 
-  doc.setFontSize(12);
-  doc.text(`Total Questions: ${timings.length}`, 14, finalY);
-  doc.text(`Total Target Time: ${formatTime(timings.length * timePerQuestion)}`, 14, finalY + 7);
-  doc.text(`Total Time Taken: ${formatTime(totalTimeTaken)}`, 14, finalY + 14);
-  doc.text(`Total Extra Time: ${(totalExtraTime >= 0 ? "+" : "") + formatTime(totalExtraTime)}`, 14, finalY + 21);
-
-  doc.save("Exam_Report.pdf");
-}
+  // Save
+  const filename = examName.replace(/\s+/g, "_") + "_Result.pdf";
+  doc.save(filename);
+});
