@@ -1,24 +1,24 @@
-
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Exam Timer - Setup</title>
+  <title>Exam Timer Setup</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h2>Exam Timer Setup</h2>
+    <h1>Exam Timer Setup</h1>
     <form id="examForm">
-      <label>Exam Name:</label>
-      <input type="text" id="examName" required>
-
-      <label>Total Questions:</label>
-      <input type="number" id="totalQuestions" min="1" max="150" required>
-
-      <label>Total Time (in minutes):</label>
-      <input type="number" id="totalTime" min="1" required>
-
+      <label>Exam Name:
+        <input type="text" id="examName" required>
+      </label>
+      <label>Total Questions:
+        <input type="number" id="totalQuestions" required min="1" max="150">
+      </label>
+      <label>Total Time (in minutes):
+        <input type="number" id="totalTime" required min="1">
+      </label>
       <button type="submit">Start Exam</button>
     </form>
   </div>
