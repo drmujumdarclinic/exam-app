@@ -93,7 +93,14 @@ function nextQuestion() {
 }
 
 function goToResult() {
-  localStorage.setItem("results", JSON.stringify(questionTimings));
+  const resultData = {
+    examName,
+    totalQuestions,
+    perQuestionTime, // seconds
+    questionTimings // array of { question, timeTaken }
+  };
+
+  localStorage.setItem("examResultData", JSON.stringify(resultData));
   window.location.href = "result.html";
 }
 
