@@ -117,3 +117,13 @@ stopBtn.addEventListener("click", () => {
 // Init
 updateUI();
 startTimer();
+
+
+// At end of quiz (replace `showResult()` function in timer.js)
+function showResult() {
+  localStorage.setItem('timePerQuestion', JSON.stringify(timePerQuestion));
+  localStorage.setItem('questionCount', totalQuestions);
+  localStorage.setItem('targetTime', perQuestionTime);
+  localStorage.setItem('examName', examName);
+  window.location.href = "result.html";
+}
