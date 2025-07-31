@@ -1,48 +1,122 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #fffaf2;
+/* General Reset */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #fff;
+  color: #333;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
+
 .container {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  width: 90%;
-  max-width: 400px;
-}
-h1 {
   text-align: center;
-  color: #ff8800;
 }
-form {
-  display: flex;
-  flex-direction: column;
+
+/* Circular Timer */
+.progress-ring {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
 }
-label {
-  margin: 10px 0;
+
+.progress-ring svg {
+  transform: rotate(-90deg);
+  position: absolute;
+  top: 0;
+  left: 0;
 }
-input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+
+circle.bg {
+  stroke: #eee;
+  fill: none;
+  stroke-width: 12;
 }
-button {
-  background: #ff8800;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  margin-top: 20px;
-  cursor: pointer;
+
+circle.progress {
+  stroke: orange;
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s linear;
+}
+
+/* Center Content */
+.center-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#questionNumber {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+#nextBtn {
+  padding: 10px 20px;
   font-size: 16px;
+  background: orange;
+  border: none;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
 }
-button:hover {
-  background: #e57700;
+
+#nextBtn:hover {
+  background: darkorange;
+}
+
+/* Timer Info */
+.timer-info {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #444;
+}
+
+/* Control Buttons */
+.controls {
+  margin-top: 25px;
+}
+
+.controls button {
+  width: 50px;
+  height: 50px;
+  background: orange;
+  color: white;
+  font-size: 20px;
+  border: none;
+  border-radius: 50%;
+  margin: 0 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.controls button:hover {
+  background: darkorange;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .progress-ring {
+    width: 160px;
+    height: 160px;
+  }
+
+  .controls button {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
 }
