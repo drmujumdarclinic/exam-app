@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Exam Result</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Add html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1 id="examTitle">Exam Result</h1>
-    <canvas id="resultChart" width="400" height="250"></canvas>
-    <button id="downloadBtn">Download PDF</button>
+  <div class="result-container" id="resultSection">
+    <h1>📊 Exam Result</h1>
+    <p>Exam: <span id="examName"></span></p>
+    <p>Total Questions: <span id="totalQuestions"></span></p>
+    <p>Total Time: <span id="totalTime"></span> mins</p>
+    <p>Time Taken: <span id="timeTaken"></span></p>
+    <p>Extra Time Used: <span id="extraTime"></span></p>
+
+    <canvas id="resultChart" width="400" height="400"></canvas>
+
+    <button onclick="downloadPDF()">📥 Download PDF</button>
   </div>
 
-  <!-- Scripts at bottom -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="result.js" defer></script>
+  <script src="result.js"></script>
 </body>
 </html>
