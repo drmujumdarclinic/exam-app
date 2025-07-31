@@ -1,84 +1,58 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const examData = JSON.parse(localStorage.getItem("examData"));
-  const results = JSON.parse(localStorage.getItem("results"));
+// Fetch result data from localStorage
+const examName = localStorage.getItem("examName") || "Sample Exam";
+const totalQuestions = parseInt(localStorage.getItem("totalQuestions") || "10");
+const totalTime = parseInt(localStorage.getItem("totalTime") || "5"); // in minutes
+const timeTaken = parseFloat(localStorage.getItem("timeTaken") || "5"); // in minutes
+const extraTime = Math.max(0, timeTaken - totalTime);
 
-  if (!examData || !results) {
-    alert("No result data found!");
-    window.location.href = "index.html";
-    return;
-  }
+// Update HTML content
+document.getElementById("examName").textContent = examName;
+document.getElementById("totalQuestions").textContent = totalQuestions;
+document.getElementById("totalTime").textContent = totalTime;
+document.getElementById("timeTaken").textContent = timeTaken.toFixed(2) + " mins";
+document.getElementById("extraTime").textContent = extraTime > 0 ? extraTime.toFixed(2) + " mins" : "None";
 
-  const { examName, timePerQuestion } = examData;
-  document.getElementById("examTitle").textContent = `${examName} - Result`;
+// Create a chart using Chart.js
+const ctx = document.getElementById('resultChart').getContext('2d');
 
-  const labels = results.map(r => `Q${r.question}`);
-  const actualTimes = results.map(r => Math.max(0, r.timeTaken));
-  const targetTimes = results.map(() => timePerQuestion);
-
-  const ctx = document.getElementById('resultChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Target Time (sec)',
-          data: targetTimes,
-          backgroundColor: 'rgba(54, 162, 235, 0.6)'
-        },
-        {
-          label: 'Time Taken (sec)',
-          data: actualTimes,
-          backgroundColor: 'rgba(255, 99, 132, 0.6)'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'top'
-        },
-        title: {
-          display: true,
-          text: 'Time per Question'
+const chart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Total Time', 'Time Taken', 'Extra Time'],
+    datasets: [{
+      label: 'Time in minutes',
+      data: [totalTime, timeTaken, extraTime],
+      backgroundColor: [
+        'rgba(54, 162, 235, 0.6)',
+        'rgba(255, 206, 86, 0.6)',
+        'rgba(255, 99, 132, 0.6)'
+      ],
+      borderColor: [
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(255, 99, 132, 1)'
+      ],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
         }
       }
     }
-  });
-
-  document.getElementById("downloadBtn").addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text(`${examName} - Exam Result`, 10, 15);
-    doc.setFontSize(12);
-    doc.text(`Question-wise Time Summary`, 10, 25);
-
-    results.forEach((r, index) => {
-      const y = 35 + index * 8;
-      doc.text(`Q${r.question}: Target ${Math.round(timePerQuestion)}s, Taken ${Math.round(r.timeTaken)}s`, 10, y);
-    });
-
-    doc.addPage();
-    doc.setFontSize(14);
-    doc.text('Bar Chart:', 10, 15);
-    const chartCanvas = document.getElementById("resultChart");
-    const chartImage = chartCanvas.toDataURL("image/png", 1.0);
-    doc.addImage(chartImage, 'PNG', 10, 20, 180, 100);
-
-    const filename = examName.replace(/\s+/g, "_") + "_Result.pdf";
-    doc.save(filename);
-  });
+  }
 });
 
+// Download as PDF
 function downloadPDF() {
   const element = document.getElementById('resultSection');
-
   const opt = {
     margin:       0.5,
-    filename:     'Exam_Result.pdf',
+    filename:     `${examName}_Result.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2 },
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
