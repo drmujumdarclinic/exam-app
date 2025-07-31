@@ -16,6 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("examTitle").textContent = `${examName} - Result`;
 
   const ctx = document.getElementById("resultChart").getContext("2d");
+
+  if (Chart.getChart("resultChart")) {
+  Chart.getChart("resultChart").destroy();
+}
+
+  
   new Chart(ctx, {
     type: "bar",
     data: {
