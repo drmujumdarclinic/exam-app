@@ -1,51 +1,119 @@
 // timer.js
-const examName = localStorage.getItem("examName") || "Exam";
-const totalQuestions = parseInt(localStorage.getItem("totalQuestions")) || 1;
-const timePerQuestion = parseInt(localStorage.getItem("timePerQuestion")) || 60;
+
+const examData = JSON.parse(localStorage.getItem("examData"));
+if (!examData) window.location.href = "index.html";
+
+const { examName, totalQuestions, totalTime, timePerQuestion } = examData;
 
 let currentQuestion = 1;
-let remainingTime = timePerQuestion;
-let totalTimeSpent = 0;
+let perQuestionTime = timePerQuestion; // in seconds
+let timeLeft = perQuestionTime;
+let totalTimePassed = 0;
+let totalExamSeconds = totalTime * 60;
 
-const questionDisplay = document.getElementById("questionNumber");
-const timerDisplay = document.getElementById("timer");
-const examNameDisplay = document.getElementById("examName");
+let interval = null;
+let negative = false;
+let questionTimings = [];
 
-examNameDisplay.textContent = examName;
+const beep = document.getElementById("beep");
+const questionTimer = document.getElementById("questionTimer");
+const totalTimer = document.getElementById("totalTimer");
+const questionNumber = document.getElementById("questionNumber");
+const nextBtn = document.getElementById("nextBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const stopBtn = document.getElementById("stopBtn");
 
-function updateDisplay() {
-  timerDisplay.textContent = `${Math.floor(remainingTime / 60).toString().padStart(2, '0')}:${(remainingTime % 60).toString().padStart(2, '0')}`;
-  questionDisplay.textContent = `Question ${currentQuestion} of ${totalQuestions}`;
+const progressCircle = document.querySelector(".progress");
+const radius = progressCircle.r.baseVal.value;
+const circumference = 2 * Math.PI * radius;
+progressCircle.style.strokeDasharray = `${circumference}`;
+progressCircle.style.strokeDashoffset = `${circumference}`;
+
+function updateProgress(percent) {
+  const offset = circumference - (percent / 100) * circumference;
+  progressCircle.style.strokeDashoffset = offset;
+}
+
+function format(sec) {
+  const m = Math.floor(Math.abs(sec) / 60).toString().padStart(2, '0');
+  const s = Math.abs(sec % 60).toString().padStart(2, '0');
+  return (sec < 0 ? "-" : "") + `${m}:${s}`;
+}
+
+function updateUI() {
+  questionTimer.textContent = format(timeLeft);
+  totalTimer.textContent = format(totalTimePassed);
+  questionNumber.textContent = `${currentQuestion} / ${totalQuestions}`;
+  const percent = Math.max(0, Math.min(100, ((perQuestionTime - timeLeft) / perQuestionTime) * 100));
+  updateProgress(percent);
+}
+
+function startTimer() {
+  interval = setInterval(() => {
+    timeLeft--;
+    totalTimePassed++;
+
+    // Play beep once when time reaches 0
+    if (timeLeft === 0) beep.play();
+
+    // Don't let total exam exceed
+    if (totalTimePassed >= totalExamSeconds + totalQuestions * 30) { // buffer 30s each
+      stopTimer();
+      goToResult();
+    }
+
+    updateUI();
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(interval);
+}
+
+function stopTimer() {
+  clearInterval(interval);
 }
 
 function nextQuestion() {
-  if (currentQuestion < totalQuestions) {
-    currentQuestion++;
-    remainingTime = timePerQuestion;
-    updateDisplay();
-    playBeep();
-  } else {
-    finishExam();
+  questionTimings.push({
+    question: currentQuestion,
+    timeTaken: perQuestionTime - timeLeft
+  });
+
+  if (currentQuestion >= totalQuestions) {
+    stopTimer();
+    localStorage.setItem("results", JSON.stringify(questionTimings));
+    goToResult();
+    return;
   }
+
+  currentQuestion++;
+  timeLeft = perQuestionTime;
+  updateUI();
 }
 
-function finishExam() {
-  localStorage.setItem("totalTimeSpent", totalTimeSpent);
+function goToResult() {
+  localStorage.setItem("results", JSON.stringify(questionTimings));
   window.location.href = "result.html";
 }
 
-function playBeep() {
-  const beep = new Audio("https://www.soundjay.com/buttons/sounds/beep-07.wav");
-  beep.play();
-}
-
-updateDisplay();
-
-const interval = setInterval(() => {
-  remainingTime--;
-  totalTimeSpent++;
-  updateDisplay();
-  if (remainingTime <= 0) {
-    nextQuestion();
+// Button listeners
+nextBtn.addEventListener("click", nextQuestion);
+pauseBtn.addEventListener("click", () => {
+  if (interval) {
+    pauseTimer();
+    interval = null;
+    pauseBtn.textContent = "▶️";
+  } else {
+    startTimer();
+    pauseBtn.textContent = "⏸";
   }
-}, 1000);
+});
+stopBtn.addEventListener("click", () => {
+  stopTimer();
+  goToResult();
+});
+
+// Init
+updateUI();
+startTimer();
