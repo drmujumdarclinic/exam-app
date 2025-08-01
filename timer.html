@@ -45,6 +45,32 @@
   window.onbeforeunload = function (e) {
     return "Are you sure you want to leave or reload the page? Your progress will be lost.";
   };
+     let wakeLock = null;
+
+  // Function to request a wake lock
+  async function requestWakeLock() {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Screen Wake Lock active.');
+
+      // Reacquire the wake lock if it is released
+      wakeLock.addEventListener('release', () => {
+        console.log('Screen Wake Lock was released.');
+      });
+    } catch (err) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  }
+
+  // Re-request on visibility change (e.g., switching tabs)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !wakeLock) {
+      requestWakeLock();
+    }
+  });
+
+  // Request wake lock when page is loaded
+  requestWakeLock();
 </script>
 
 </body>
