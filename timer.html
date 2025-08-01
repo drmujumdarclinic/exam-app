@@ -41,5 +41,11 @@
   <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
   <script src="timer.js"></script>
+  <script>
+  window.onbeforeunload = function (e) {
+    return "Are you sure you want to leave or reload the page? Your progress will be lost.";
+  };
+</script>
+
 </body>
 </html>
