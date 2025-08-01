@@ -1,142 +1,132 @@
-/* Reset & base styles */
+/* Reset and base styling */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
+body, html {
+  height: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #fff;
+  background: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  overflow: hidden;
 }
 
 .container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
   text-align: center;
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
 }
 
-/* Ring container */
-.progress-ring {
+.timer-wrapper {
   position: relative;
   width: 200px;
   height: 200px;
+  margin: 0 auto 20px;
 }
 
-svg {
+.base-timer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.base-timer__svg {
   transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
 }
 
-circle {
+.base-timer__circle {
   fill: none;
-  stroke-width: 15;
+  stroke: none;
 }
 
-.bg {
-  stroke: #e6e6e6;
+.base-timer__path-elapsed {
+  stroke-width: 10px;
+  stroke: #ddd;
 }
 
-.progress {
+.base-timer__path-remaining {
+  stroke-width: 10px;
+  stroke-linecap: round;
   stroke: orange;
-  stroke-dasharray: 565.48;
-  stroke-dashoffset: 565.48;
-  transition: stroke-dashoffset 0.5s ease;
+  transition: 1s linear all;
 }
 
-/* Centered question and button */
-.center-content {
+.base-timer__label {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-#questionNumber {
-  font-size: 20px;
-  margin-bottom: 10px;
+  transform: translate(-50%, -70%);
+  font-size: 22px;
+  font-weight: bold;
   color: #333;
 }
 
-#nextBtn {
+#nextButton {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 8px 16px;
   background-color: orange;
-  color: white;
   border: none;
-  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 14px;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-#nextBtn:hover {
-  background-color: darkorange;
-}
-
-/* Timer info */
-.timer-info {
-  font-size: 18px;
+/* Timer values */
+#timeTaken {
+  font-size: 16px;
+  margin-bottom: 20px;
   color: #444;
 }
 
-/* Control buttons */
-.controls {
+/* Play & Stop buttons */
+#controls {
   display: flex;
+  justify-content: center;
   gap: 20px;
 }
 
-.controls button {
+.control-button {
+  width: 50px;
+  height: 50px;
   background-color: orange;
   color: white;
   border: none;
-  width: 50px;
-  height: 50px;
   border-radius: 50%;
-  font-size: 22px;
+  font-size: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s;
 }
 
-.controls button:hover {
-  background-color: darkorange;
+.control-button:hover {
+  background-color: #e69500;
 }
 
-/* Responsive */
-@media (max-height: 600px), (max-width: 400px) {
-  .progress-ring {
-    width: 150px;
-    height: 150px;
+@media screen and (max-width: 400px) {
+  .timer-wrapper {
+    width: 160px;
+    height: 160px;
   }
 
-  circle {
-    stroke-width: 12;
-  }
-
-  #questionNumber {
-    font-size: 16px;
-  }
-
-  #nextBtn {
-    font-size: 12px;
-    padding: 5px 12px;
-  }
-
-  .controls button {
-    width: 40px;
-    height: 40px;
+  .base-timer__label {
     font-size: 18px;
   }
 
-  .timer-info {
-    font-size: 16px;
+  #nextButton {
+    font-size: 14px;
+    padding: 6px 14px;
   }
 }
