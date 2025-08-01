@@ -134,3 +134,32 @@ function showResult() {
   localStorage.setItem('examName', examName);
   window.location.href = "result.html";
 }
+
+
+window.addEventListener('beforeunload', function (e) {
+  e.preventDefault();
+  e.returnValue = ''; // Required for modern browsers
+});
+
+
+// Save state before reload
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('questionIndex', currentQuestionIndex);
+  localStorage.setItem('elapsedTime', elapsedTime);
+});
+
+// Restore state on page load
+window.addEventListener('load', () => {
+  const savedIndex = localStorage.getItem('questionIndex');
+  const savedTime = localStorage.getItem('elapsedTime');
+
+  if (savedIndex !== null) {
+    currentQuestionIndex = parseInt(savedIndex);
+    showQuestion(currentQuestionIndex); // show question based on index
+  }
+
+  if (savedTime !== null) {
+    elapsedTime = parseInt(savedTime);
+    // update your timer UI if needed
+  }
+});
