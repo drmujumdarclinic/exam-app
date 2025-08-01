@@ -2,14 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const data = JSON.parse(localStorage.getItem("examResultData"));
 
 
-  // Save current result as main
-localStorage.setItem("examResultData", JSON.stringify(result));
 
-// Append to history array for dashboard
-let history = JSON.parse(localStorage.getItem("examResults")) || [];
-result.date = new Date().toLocaleString(); // Add timestamp
-history.push(result);
-localStorage.setItem("examResults", JSON.stringify(history));
 
   
 
@@ -80,3 +73,14 @@ localStorage.setItem("examResults", JSON.stringify(history));
     pdf.save(`${examName}_Result.pdf`);
   });
 });
+
+
+
+  // Save current result as main
+localStorage.setItem("examResultData", JSON.stringify(result));
+
+// Append to history array for dashboard
+let history = JSON.parse(localStorage.getItem("examResults")) || [];
+result.date = new Date().toLocaleString(); // Add timestamp
+history.push(result);
+localStorage.setItem("examResults", JSON.stringify(history));
